@@ -2,7 +2,7 @@
 /*
 Plugin Name: BTT Client Portal
 Description: Display data in the user Dashboard from the Stripe API.
-Version: 1.0
+Version: 1.2
 Author: Rajin sharwar
 Author URL: https://profiles.wordpress.org/rajinsharwar
 */
@@ -46,9 +46,10 @@ function custom_membership_section_content($atts, $content = null){
             }
 
             $invoice_pdf_link = \Stripe\Invoice::retrieve($invoice->id)->invoice_pdf;
+            $invoice_payment_link = $invoice->hosted_invoice_url;
 
             $custom_content .= '<tr>';
-            $custom_content .= '<td>' . $invoice->number . '</td>';
+            $custom_content .= '<td><a href="' . $invoice_payment_link . '" target="_blank" style="text-decoration: underline;">' . $invoice->number . '</a></td>';
             $custom_content .= '<td>' . $invoice->customer_name . '</td>';
             $custom_content .= '<td>' . $memo . '</td>';
             $custom_content .= '<td>' . $invoice->status . '</td>';
