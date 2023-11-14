@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: BTT Clinet Portal
+Plugin Name: BTT Client Portal
 Description: Display data in the user Dashboard from the Stripe API.
 Version: 1.0
 Author: Rajin sharwar
@@ -21,7 +21,7 @@ function fetch_stripe_invoices($customer_id) {
 
 function custom_membership_section_content($atts, $content = null){
     // Access the current user's email
-    $user_email = wp_get_current_user() -> user_email;
+    $user_email = wp_get_current_user()->user_email;
 
     // Fetch data from Stripe for the user with the matching email
     $customer = fetch_stripe_customer_by_email($user_email);
@@ -34,17 +34,19 @@ function custom_membership_section_content($atts, $content = null){
         $custom_content .= '<h2>My Invoices</h2>';
         $custom_content .= '<style>.custom-table tr td { vertical-align: top; }</style>';
         $custom_content .= '<table class="custom-table">';
-        $custom_content .= '<tr><th>Invoice ID</th><th>Client Name</th><th>Memo</th><th>Status</th><th>Invoice Date</th><th>Total Amount</th></tr>';
+        $custom_content .= '<tr><th>Invoice ID</th><th>Client Name</th><th>Memo</th><th>Status</th><th>Invoice Date</th><th>Total Amount</th><th>Action</th></tr>';
 
         foreach ($invoices->data as $invoice) {
             $memo = $invoice->description;
-            
+
             // Check if the memo is a numbered list
             if (preg_match('/\d+\.\s+/', $memo)) {
                 // Replace each number and dot with a line break
                 $memo = preg_replace('/\b(?!1\b)([0-9]|[1-9][0-9]|100)\.\s+/', "<br>$1&nbsp;", $memo);
             }
-            
+
+            $invoice_pdf_link = \Stripe\Invoice::retrieve($invoice->id)->invoice_pdf;
+
             $custom_content .= '<tr>';
             $custom_content .= '<td>' . $invoice->number . '</td>';
             $custom_content .= '<td>' . $invoice->customer_name . '</td>';
@@ -52,6 +54,7 @@ function custom_membership_section_content($atts, $content = null){
             $custom_content .= '<td>' . $invoice->status . '</td>';
             $custom_content .= '<td>' . date('Y-m-d', $invoice->created) . '</td>';
             $custom_content .= '<td>$' . number_format($invoice->total / 100, 2) . '</td>';
+            $custom_content .= '<td><a href="' . $invoice_pdf_link . '" download><b>Download</b></a></td>';
             $custom_content .= '</tr>';
         }
 
@@ -60,7 +63,7 @@ function custom_membership_section_content($atts, $content = null){
     } else {
         // No customer found with the specified email
         $custom_content = '<h2>My Invoices</h2>';
-        $custom_content .= '<div class="custom-section">No invoices found.</div>';        
+        $custom_content .= '<div class="custom-section">No invoices found.</div>';
     }
 
     return $custom_content;
