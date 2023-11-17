@@ -2,12 +2,17 @@
 /*
 Plugin Name: BTT Client Portal
 Description: Display data in the user Dashboard from the Stripe API.
-Version: 1.2
+Version: 1.3
 Author: Rajin sharwar
 Author URL: https://profiles.wordpress.org/rajinsharwar
 */
 
-$stripe_library_path = plugin_dir_path(__FILE__) . 'stripe/init.php';
+if ( is_plugin_active( 'gravityformsstripe/stripe.php' ) ){
+    $stripe_library_path = WP_CONTENT_DIR . '/plugins/gravityformsstripe/includes/stripe/stripe-php/init.php';
+} else {
+    $stripe_library_path = plugin_dir_path(__FILE__) . 'stripe/init.php';
+}
+
 require_once($stripe_library_path);
 
 \Stripe\Stripe::setApiKey('rk_test_5103FBz2wWyZphMKn66zoSXzOufDi1P0YMjv8enyjg0BgW1KdV9CA4J95eYTp2mn5nhGKnDPyV64QFO4RlRRnD5LL00qvuuplgD');
