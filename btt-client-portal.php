@@ -80,7 +80,7 @@ add_shortcode('custom_membership_section', 'custom_membership_section_content');
 
 function fetch_stripe_customer_by_email($user_email) {
     // Retrieve all customers from Stripe
-    $all_customers = \Stripe\Customer::all(['limit' => 100]);
+    $all_customers = \Stripe\Customer::all();
 
     // Find the customer with the matching email
     foreach ($all_customers->data as $customer) {
