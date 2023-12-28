@@ -2,7 +2,7 @@
 /*
 Plugin Name: BTT Client Portal
 Description: Display data in the user Dashboard from the Stripe API.
-Version: 1.5
+Version: 1.7
 Author: Rajin sharwar
 Author URL: https://profiles.wordpress.org/rajinsharwar
 */
@@ -10,7 +10,7 @@ Author URL: https://profiles.wordpress.org/rajinsharwar
 if (is_plugin_active('gravityformsstripe/stripe.php')) {
     $stripe_library_path = WP_CONTENT_DIR . '/plugins/gravityformsstripe/includes/stripe/stripe-php/init.php';
 } else {
-    $stripe_library_path = plugin_dir_path(__FILE__) . 'stripe/init.php';
+    return;
 }
 
 require_once($stripe_library_path);
@@ -49,7 +49,7 @@ class InvoicesRender
     /**
      * Render invoices and subscriptions using the Shortcode: {custom_membership_section}
      */
-    function custom_membership_section_content($atts, $content = null)
+    function custom_invoices_section_content($atts, $content = null)
     {
         // Access the current user's email
         $user_email = wp_get_current_user()->user_email;
@@ -78,9 +78,6 @@ class InvoicesRender
                 $inctype = substr($invoice->id, 0, 3);
                 $invtotal = $invoice->total;
                 $billreason = $invoice->billing_reason;
-
-
-
 
                 /* if this is an invoice and not a payment intent etc. check to make sure it's over 0 - or the intial invoice,  else don't display */
                 if ($inctype === 'in_' && ($invtotal > 0 || $bill_reason = 'subscription_create')) {
@@ -124,6 +121,32 @@ class InvoicesRender
             $custom_content .= '</table>';
             $custom_content .= '</div>';
             $custom_content .= '<hr>';
+
+        } else {
+            // No customer found with the specified email
+            $custom_content = '<section>';
+            $custom_content .= '<h2>Invoices</h2>';
+            $custom_content .= '<div class="custom-section">Sorry, No invoices found.</div>';
+            $custom_content .= '</section>';
+        }
+
+        return $custom_content;
+    }
+
+    function custom_subscriptions_section_content()
+    {
+        // Access the current user's email
+        $user_email = wp_get_current_user()->user_email;
+
+        // Fetch data from Stripe for the user with the matching email
+        $customer = $this->fetch_stripe_customer_by_email($user_email);
+
+        if ($customer) {
+            // Retrieve the customer's invoices and subscriptions from Stripe
+            $invoices = $this->fetch_stripe_invoices($customer->id);
+            $subscriptions = $this->fetch_stripe_subscriptions($customer->id);
+
+            $custom_content = '<section>';
 
             // Render subscriptions
 
@@ -193,14 +216,13 @@ class InvoicesRender
         } else {
             // No customer found with the specified email
             $custom_content = '<section>';
-            $custom_content .= '<h2>Invoices and Subscriptions</h2>';
-            $custom_content .= '<div class="custom-section">No invoices and subscriptions found.</div>';
+            $custom_content .= '<h2>Subscriptions</h2>';
+            $custom_content .= '<div class="custom-section">Sorry, No subscriptions found.</div>';
             $custom_content .= '</section>';
         }
 
         return $custom_content;
     }
-
     /**
      * Fetching the Customer object of the current user using his email.
      */
@@ -232,4 +254,6 @@ if (class_exists('InvoicesRender')) {
 }
 
 //Adding the Shortcode.
-add_shortcode('custom_membership_section', array($InvoicesRender, 'custom_membership_section_content'));
+add_shortcode('custom_invoices_section', array($InvoicesRender, 'custom_invoices_section_content'));
+add_shortcode('custom_subscriptions_section', array($InvoicesRender, 'custom_subscriptions_section_content'));
+
